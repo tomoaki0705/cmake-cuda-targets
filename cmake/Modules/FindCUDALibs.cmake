@@ -125,10 +125,10 @@ add_cuda_link_dependency(nvToolsExt CUDA::cudart)
 # > abstraction layer library cuLIBOS (libculibos.a) distributed as part of the
 # > CUDA toolkit.
 find_and_add_cuda_import_lib(culibos)
-# foreach (cuda_lib cublas cusparse cufft) # curand npp
-foreach (cuda_lib cublas cufft cusparse curand nvjpeg)# npp
-  add_cuda_link_dependency(${cuda_lib}_static CUDA::culibos)
-endforeach()
+## foreach (cuda_lib cublas cusparse cufft) # curand npp
+#foreach (cuda_lib cublas cufft cusparse curand nvjpeg)# npp
+#  add_cuda_link_dependency(${cuda_lib}_static CUDA::culibos)
+#endforeach()
 
 # cuSOLVER depends on cuBLAS and cuSPARSE
 # NOTE: nvGRAPH relies on this, make sure it happens before nvGRAPH dependencies.

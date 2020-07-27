@@ -1,6 +1,9 @@
 cmake_minimum_required(VERSION 3.9...3.12 FATAL_ERROR)
 project(cmake_cuda_libs_tests LANGUAGES C CXX)
 
+# include gtest settings
+include("cmake/gtest.cmake")
+
 foreach (lang CXX CUDA)
   set(CMAKE_${lang}_STANDARD 14)
   set(CMAKE_${lang}_STANDARD_REQUIRED ON)
@@ -16,23 +19,17 @@ find_package(CUDALibs REQUIRED)
 # for testing both dynamic and static linkage
 function(make_both_tests cuda_lib)
   # dynamic linkage test
-  add_executable(test-${cuda_lib} tests/${cuda_lib}.cpp)
+  #add_executable(test-${cuda_lib} tests/${cuda_lib}.cpp)
+  cxx_test(test-${cuda_lib} tests/${cuda_lib}.cpp)
   target_link_libraries(test-${cuda_lib} CUDA::${cuda_lib})
-
-  # static linkage test
-  add_executable(test-${cuda_lib}-static tests/${cuda_lib}.cpp)
-  target_link_libraries(test-${cuda_lib}-static CUDA::${cuda_lib}_static)
 endfunction()
 
 make_both_tests(cudart)
-make_both_tests(cublas)
+#make_both_tests(cublas)
 
-# TODO: cufft_static is BROKEN, maybe impossible to link without `nvlink`?
-# make_both_tests(cufft)
-# TODO: difference between cufft and cufftw?
 
 make_both_tests(curand)
-make_both_tests(cusolver)
+#make_both_tests(cusolver)
 make_both_tests(cusparse)
 
 # NPP component libraries.
@@ -50,7 +47,7 @@ make_both_tests(nppitc)
 
 # TODO: nvblas
 
-make_both_tests(nvgraph)
+#make_both_tests(nvgraph)
 make_both_tests(nvjpeg)
 
 # NVRTC (Runtime Compilation) is a shared library only.
