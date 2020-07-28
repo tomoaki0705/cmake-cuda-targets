@@ -17,11 +17,12 @@ int main(int argc, char **argv)
 
 class flipTest : public testing::TestWithParam<int>
 {
+	public:
     int flip_code;
 
     virtual void SetUp()
     {
-        flip_code = GetParam();//:testing::get<0>(GetParam());
+        flip_code = GetParam();
     }
 };
 
@@ -40,9 +41,9 @@ TEST_P(flipTest, Accuracy)
 	//std::cout << "nDstStep : " << nDstStep << std::endl;
     const int simgsize = nSrcStep*   simgcols*sizeof(d_pSrc[0]);
     const int dimgsize = nDstStep*oROI.height*sizeof(d_pSrc[0]);
-    const int simgpix  = simgrows*simgcols;
-    const int dimgpix  = oROI.width*oROI.height;
-    const NppiAxis flip = NPP_VERTICAL_AXIS;
+    //const int simgpix  = simgrows*simgcols;
+    //const int dimgpix  = oROI.width*oROI.height;
+    //const NppiAxis flip = NPP_VERTICAL_AXIS;
     Npp8u *h_img = new Npp8u[simgsize];
 	//std::cout << "simgpix  : " << simgpix  << std::endl;
 	//std::cout << "simgsize : " << simgsize << std::endl;
@@ -50,23 +51,26 @@ TEST_P(flipTest, Accuracy)
         for (int j = 0; j < simgcols; j++)
             h_img[i*nSrcStep+j] = simgcols-j-1;
     cudaError_t err = cudaMalloc((void **)&d_pSrc, simgsize);
-    assert(err == cudaSuccess);
+    EXPECT_EQ(err, cudaSuccess);
     err = cudaMalloc((void **)&d_pDst, dimgsize);
-    assert(err == cudaSuccess);
+    EXPECT_EQ(err, cudaSuccess);
     err = cudaMemcpy(d_pSrc, h_img, simgsize, cudaMemcpyHostToDevice);
-    assert(err == cudaSuccess);
+    EXPECT_EQ(err, cudaSuccess);
 	//std::cout << "LINE     : (" << __LINE__ << ")" << std::endl;
     err = cudaMemcpy(d_pDst, h_img, simgsize, cudaMemcpyHostToDevice);
-    assert(err == cudaSuccess);
+    EXPECT_EQ(err, cudaSuccess);
     // perform mirror op
-    NppStatus ret = nppiMirror_8u_C1IR(d_pDst, nDstStep, oROI, flip);
-    assert(ret == NPP_NO_ERROR);
+	//std::cout << "LINE     : (" << __LINE__ << ")" << std::endl;
+	//std::cout << "flip_code: " << flip_code << std::endl;
+    NppStatus ret = nppiMirror_8u_C1IR(d_pDst, nDstStep, oROI, 
+					(flip_code == 0 ? NPP_HORIZONTAL_AXIS : (flip_code > 0 ? NPP_VERTICAL_AXIS : NPP_BOTH_AXIS)));
+    EXPECT_EQ(ret, NPP_NO_ERROR);
     err = cudaMemcpy(h_img, d_pDst, dimgsize, cudaMemcpyDeviceToHost);
-    assert(err == cudaSuccess);
+    EXPECT_EQ(err, cudaSuccess);
     // test for R to L flip
     for (int i = 0; i < oROI.height; i++)
         for (int j = 0; j < oROI.width; j++)
-            assert(h_img[i*nDstStep+j] == j);
+            EXPECT_EQ(h_img[i*nDstStep+j], j);
 
 	delete [] h_img;
 	cudaFree((void*)&d_pSrc);
