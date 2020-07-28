@@ -1,6 +1,7 @@
 // just run a simple memcpy to device and back to make sure cudart is working
 #include <cuda_runtime.h>
 #include <iostream>
+#include <cstdlib>
 
 #define N 100
 

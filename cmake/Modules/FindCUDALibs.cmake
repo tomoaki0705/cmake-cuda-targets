@@ -86,7 +86,7 @@ if (BLAS_FOUND)
 endif()
 
 # TODO: (nppi* nvblas)
-foreach (cuda_lib cufft cufftw curand cusolver cusparse nvgraph nvjpeg)
+foreach (cuda_lib cufft cufftw curand cusolver cusparse nvgraph)
   # find the dynamic library
   find_and_add_cuda_import_lib(${cuda_lib})
   add_cuda_link_dependency(${cuda_lib} CUDA::cudart)
@@ -153,17 +153,12 @@ find_and_add_cuda_import_lib(nppc_static)
 foreach (cuda_lib nppial nppicc nppidei nppif nppig nppim nppist nppitc npps)
   # Find the libraries.
   find_and_add_cuda_import_lib(${cuda_lib})
-  find_and_add_cuda_import_lib(${cuda_lib}_static)
 
   # Designate dynamic link dependencies.
   add_cuda_link_dependency(${cuda_lib} CUDA::cudart)
   # TODO: add this in since it is needed in static or rely on existing dynamic links?
   # add_cuda_link_dependency(${cuda_lib} CUDA::nppc)
 
-  # Designate static link dependencies.
-  add_cuda_link_dependency(${cuda_lib}_static CUDA::cudart_static)
-  add_cuda_link_dependency(${cuda_lib}_static CUDA::nppc_static)
-  add_cuda_link_dependency(${cuda_lib}_static CUDA::culibos)
 endforeach()
 
 # nppicom: JPEG compression and decompression functions in nppi_compression_functions.h
@@ -174,7 +169,6 @@ find_and_add_cuda_import_lib(nppicom_static)
 find_and_add_cuda_import_lib(nppisu)
 find_and_add_cuda_import_lib(nppisu_static)
 add_cuda_link_dependency(nppisu CUDA::cudart)
-add_cuda_link_dependency(nppisu_static CUDA::cudart_static)
 
 # TODO: mysterious extra static libraries...what are they for?
 find_and_add_cuda_import_lib(cudadevrt)

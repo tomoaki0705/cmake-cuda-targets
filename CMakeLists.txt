@@ -5,7 +5,6 @@ project(cmake_cuda_libs_tests LANGUAGES C CXX)
 include("cmake/gtest.cmake")
 
 foreach (lang CXX CUDA)
-  set(CMAKE_${lang}_STANDARD 14)
   set(CMAKE_${lang}_STANDARD_REQUIRED ON)
   set(CMAKE_${lang}_EXTENSIONS OFF)
 endforeach()
@@ -47,8 +46,6 @@ make_both_tests(nppitc)
 
 # TODO: nvblas
 
-#make_both_tests(nvgraph)
-make_both_tests(nvjpeg)
 
 # NVRTC (Runtime Compilation) is a shared library only.
 add_executable(test-nvrtc tests/nvrtc.cpp)
