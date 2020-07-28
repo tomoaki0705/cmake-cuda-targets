@@ -30,8 +30,8 @@ TEST_P(flipTest, Accuracy)
     /**
      * 1 channel 8-bit unsigned image mirror.
      */
-    const int simgrows = 32;
-    const int simgcols = 32;
+    const int simgrows = 113;
+    const int simgcols = 113;
     Npp8u *d_pSrc, *d_pDst;
     NppiSize oROI;  oROI.width = simgcols;  oROI.height = simgrows;
     const int simgsize = simgrows*simgcols*sizeof(d_pSrc[0]);
