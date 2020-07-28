@@ -7,13 +7,13 @@
 #include <assert.h>
 #include <iostream>
 #include <gtest/gtest.h>
+#define DIVUP(source,round) (((source+(round-1))/round)*round)
 
 int main(int argc, char **argv)
 {
     ::testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();
 }
-
 
 class flipTest : public testing::TestWithParam<int>
 {
@@ -34,23 +34,28 @@ TEST_P(flipTest, Accuracy)
     const int simgcols = 113;
     Npp8u *d_pSrc, *d_pDst;
     NppiSize oROI;  oROI.width = simgcols;  oROI.height = simgrows;
-    const int simgsize = simgrows*simgcols*sizeof(d_pSrc[0]);
-    const int dimgsize = oROI.width*oROI.height*sizeof(d_pSrc[0]);
+    const int nSrcStep = DIVUP(simgcols  ,128)*sizeof(d_pSrc[0]);
+    const int nDstStep = DIVUP(oROI.width,128)*sizeof(d_pDst[0]);
+	//std::cout << "nSrcStep : " << nSrcStep << std::endl;
+	//std::cout << "nDstStep : " << nDstStep << std::endl;
+    const int simgsize = nSrcStep*   simgcols*sizeof(d_pSrc[0]);
+    const int dimgsize = nDstStep*oROI.height*sizeof(d_pSrc[0]);
     const int simgpix  = simgrows*simgcols;
     const int dimgpix  = oROI.width*oROI.height;
-    const int nSrcStep = simgcols*sizeof(d_pSrc[0]);
-    const int nDstStep = oROI.width*sizeof(d_pDst[0]);
     const NppiAxis flip = NPP_VERTICAL_AXIS;
-    Npp8u *h_img = new Npp8u[simgpix];
+    Npp8u *h_img = new Npp8u[simgsize];
+	//std::cout << "simgpix  : " << simgpix  << std::endl;
+	//std::cout << "simgsize : " << simgsize << std::endl;
     for (int i = 0; i < simgrows; i++)
         for (int j = 0; j < simgcols; j++)
-            h_img[i*simgcols+j] = simgcols-j-1;
+            h_img[i*nSrcStep+j] = simgcols-j-1;
     cudaError_t err = cudaMalloc((void **)&d_pSrc, simgsize);
     assert(err == cudaSuccess);
     err = cudaMalloc((void **)&d_pDst, dimgsize);
     assert(err == cudaSuccess);
     err = cudaMemcpy(d_pSrc, h_img, simgsize, cudaMemcpyHostToDevice);
     assert(err == cudaSuccess);
+	//std::cout << "LINE     : (" << __LINE__ << ")" << std::endl;
     err = cudaMemcpy(d_pDst, h_img, simgsize, cudaMemcpyHostToDevice);
     assert(err == cudaSuccess);
     // perform mirror op
@@ -61,8 +66,11 @@ TEST_P(flipTest, Accuracy)
     // test for R to L flip
     for (int i = 0; i < oROI.height; i++)
         for (int j = 0; j < oROI.width; j++)
-            assert(h_img[i*oROI.width+j] == j);
+            assert(h_img[i*nDstStep+j] == j);
 
+	delete [] h_img;
+	cudaFree((void*)&d_pSrc);
+	cudaFree((void*)&d_pDst);
     //std::cout << "Test ran successfully!" << std::endl;
 }
 
