@@ -6,8 +6,27 @@
 #include <cuda_runtime_api.h>
 #include <assert.h>
 #include <iostream>
+#include <gtest/gtest.h>
 
-int main(void) {
+int main(int argc, char **argv)
+{
+    ::testing::InitGoogleTest(&argc, argv);
+    return RUN_ALL_TESTS();
+}
+
+
+class flipTest : public testing::TestWithParam<int>
+{
+    int flip_code;
+
+    virtual void SetUp()
+    {
+        flip_code = GetParam();//:testing::get<0>(GetParam());
+    }
+};
+
+TEST_P(flipTest, Accuracy)
+{
     /**
      * 1 channel 8-bit unsigned image mirror.
      */
@@ -32,11 +51,10 @@ int main(void) {
     assert(err == cudaSuccess);
     err = cudaMemcpy(d_pSrc, h_img, simgsize, cudaMemcpyHostToDevice);
     assert(err == cudaSuccess);
-    // set image to pixval initially
-    err = cudaMemset(d_pDst, 0, dimgsize);
+    err = cudaMemcpy(d_pDst, h_img, simgsize, cudaMemcpyHostToDevice);
     assert(err == cudaSuccess);
     // perform mirror op
-    NppStatus ret =  nppiMirror_8u_C1R(d_pSrc, nSrcStep, d_pDst, nDstStep, oROI, flip);
+    NppStatus ret = nppiMirror_8u_C1IR(d_pDst, nDstStep, oROI, flip);
     assert(ret == NPP_NO_ERROR);
     err = cudaMemcpy(h_img, d_pDst, dimgsize, cudaMemcpyDeviceToHost);
     assert(err == cudaSuccess);
@@ -45,7 +63,8 @@ int main(void) {
         for (int j = 0; j < oROI.width; j++)
             assert(h_img[i*oROI.width+j] == j);
 
-    std::cout << "Test ran successfully!" << std::endl;
-
-    return 0;
+    //std::cout << "Test ran successfully!" << std::endl;
 }
+
+enum flipCode {FLIP_BOTH = 0, FLIP_X = 1, FLIP_Y = -1};
+INSTANTIATE_TEST_CASE_P(nppiMirror, flipTest, testing::Values(0, 1, -1));
