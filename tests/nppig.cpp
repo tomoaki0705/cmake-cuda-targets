@@ -67,10 +67,31 @@ TEST_P(flipTest, Accuracy)
     EXPECT_EQ(ret, NPP_NO_ERROR);
     err = cudaMemcpy(h_img, d_pDst, dimgsize, cudaMemcpyDeviceToHost);
     EXPECT_EQ(err, cudaSuccess);
+	err = cudaDeviceSynchronize();
+    EXPECT_EQ(err, cudaSuccess);
     // test for R to L flip
+	std::string message;
+	bool failedFlag = false;
     for (int i = 0; i < oROI.height; i++)
+	{
         for (int j = 0; j < oROI.width; j++)
-            EXPECT_EQ(h_img[i*nDstStep+j], j);
+		{
+            if(h_img[i*nDstStep+j] == j)
+				message += 'o';
+			else
+			{
+				failedFlag = true;
+				message += 'x';
+			}
+		}
+		message += '\n';
+	}
+	if(failedFlag)
+	{
+		std::cout << std::endl;
+		std::cout << message;
+	}
+	EXPECT_FALSE(failedFlag);
 
 	delete [] h_img;
 	cudaFree((void*)&d_pSrc);
